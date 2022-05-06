@@ -1,0 +1,92 @@
+SELECT * 
+FROM `double-vehicle-342418.Covidproject.covid_deaths` 
+WHERE continent is not null 
+
+
+--select the data we are going to start working with
+-- This displays the chance of survival in your country
+
+select location, date, total_cases, new_cases, total_deaths, population
+FROM `double-vehicle-342418.Covidproject.covid_deaths`
+WHERE continent is not null 
+ORDER BY location, date 
+
+--total cases vs total deaths
+
+select location, date, total_cases,  total_deaths, (total_deaths/total_cases)*100 AS death_percentage
+FROM `double-vehicle-342418.Covidproject.covid_deaths`
+WHERE location LIKE 'United States',
+ORDER BY location, date 
+
+
+--Total cases vs population
+-- Shows what percent of the population got covid
+select location, date, total_cases,  population, (total_cases/population)*100 AS percent_case
+FROM `double-vehicle-342418.Covidproject.covid_deaths`
+WHERE location LIKE 'United States'
+ORDER BY location, date 
+
+
+--which countrie has the highest infection rate
+
+SELECT MAX(total_cases) AS highest_infection_count , location, population, MAX((total_cases/population))*100 AS percent_case
+FROM `double-vehicle-342418.Covidproject.covid_deaths`
+WHERE continent is not null 
+GROUP BY location, population
+ORDER BY percent_case DESC
+
+-- Total deaths 
+SELECT location, MAX(total_deaths) AS total_death_count
+FROM `double-vehicle-342418.Covidproject.covid_deaths`
+WHERE continent is not null 
+GROUP BY location
+ORDER BY total_death_count DESC
+
+--total deaths by continent
+SELECT location, MAX(total_deaths) AS total_death_count
+FROM `double-vehicle-342418.Covidproject.covid_deaths`
+WHERE continent is null 
+GROUP BY location
+ORDER BY total_death_count DESC
+
+--Global numbers
+
+select  date, SUM(new_cases) AS total_cases, SUM(new_deaths) AS total_deaths, SUM(new_deaths)/SUM(new_cases)*100 AS death_percentage
+FROM `double-vehicle-342418.Covidproject.covid_deaths`
+WHERE continent is not null 
+GROUP BY date
+ORDER BY  date 
+
+SELECT *  FROM `double-vehicle-342418.Covidproject.covid_vaccines` LIMIT 1000
+
+SELECT *
+FROM `double-vehicle-342418.Covidproject.covid_deaths` AS dea
+JOIN `double-vehicle-342418.Covidproject.covid_vaccines` AS vac
+ON  dea.location = vac.location AND dea.date = vac.date
+
+-- Total population vs. vaccination
+
+SELECT dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations,
+SUM(vac.new_vaccinations) OVER (PARTITION BY dea.location ORDER BY dea.location, dea.date) AS rolling_people_vaccinated
+FROM `double-vehicle-342418.Covidproject.covid_deaths` AS dea
+JOIN `double-vehicle-342418.Covidproject.covid_vaccines` AS vac
+ON  dea.location = vac.location AND dea.date = vac.date
+WHERE dea.continent is not null
+ORDER BY dea.continent, dea.location
+
+
+--Using a CTE
+
+WITH  PopvsVac AS 
+
+(SELECT dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations,
+SUM(vac.new_vaccinations) OVER (PARTITION BY dea.location ORDER BY dea.location, dea.date) AS rolling_people_vaccinated
+FROM `double-vehicle-342418.Covidproject.covid_deaths` AS dea
+JOIN `double-vehicle-342418.Covidproject.covid_vaccines` AS vac
+ON  dea.location = vac.location AND dea.date = vac.date
+WHERE dea.continent is not null
+)
+SELECT *, (rolling_people_vaccinated/population)*100 AS Rolling_vaccinated_percent
+FROM PopvsVac
+
+--The above query was exported to a new table for use in visualizations. It is under the name PopvsVac
