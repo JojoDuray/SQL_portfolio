@@ -115,3 +115,14 @@ FROM `double-vehicle-342418.Covidproject.covid_deaths`
 Group by Location, Population, date
 order by PercentPopulationInfected desc
 
+SELECT  date, location, people_fully_vaccinated
+FROM `double-vehicle-342418.Covidproject.covid_vaccines` 
+WHERE location = 'United states' OR location = 'China' OR location = 'India' OR location = 'United Kingdom' OR location = 'Mexico'
+
+
+-- total vaccinations by continent 
+SELECT continent, SUM(people_fully_vaccinated) AS Total_vaccinations
+FROM `double-vehicle-342418.Covidproject.covid_vaccines`
+WHERE continent is not null 
+GROUP BY continent
+ORDER BY continent
