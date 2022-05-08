@@ -89,4 +89,29 @@ WHERE dea.continent is not null
 SELECT *, (rolling_people_vaccinated/population)*100 AS Rolling_vaccinated_percent
 FROM PopvsVac
 
---The above query was exported to a new table for use in visualizations. It is under the name PopvsVac
+Select SUM(new_cases) as total_cases, SUM(new_deaths) as total_deaths, SUM(new_deaths)/SUM(New_Cases)*100 as DeathPercentage
+FROM `double-vehicle-342418.Covidproject.covid_deaths`
+--Where location like '%states%'
+where continent is not null 
+--Group By date
+order by 1,2
+
+
+--table 2
+
+Select location, SUM(new_deaths) as TotalDeathCount
+FROM `double-vehicle-342418.Covidproject.covid_deaths`
+--Where location like '%states%'
+Where continent is null 
+and location not in ('World', 'European Union', 'International')
+Group by location
+order by TotalDeathCount desc
+
+--table 3
+
+Select date, Location, Population, MAX(total_cases) as HighestInfectionCount,  Max((total_cases/population))*100 as PercentPopulationInfected
+FROM `double-vehicle-342418.Covidproject.covid_deaths`
+--Where location like '%states%'
+Group by Location, Population, date
+order by PercentPopulationInfected desc
+
